@@ -5,6 +5,7 @@ Welcome to Saransh AI! This guide will help you make the most of our intelligent
 ## Table of Contents
 - [Getting Started](#getting-started)
 - [Basic Features](#basic-features)
+- [Summarization Methods](#summarization-methods)
 - [Advanced Features](#advanced-features)
 - [Tips & Tricks](#tips--tricks)
 - [Troubleshooting](#troubleshooting)
@@ -42,6 +43,35 @@ Saransh AI is your intelligent reading companion that helps you:
 - Perfect contrast for easy reading
 - No ads, popups, or distractions
 - Responsive design that works on all devices
+
+## Summarization Methods
+
+### 1. AI Summarization (BART)
+- **What**: Uses Facebook's BART model for human-like summaries
+- **Best For**: 
+  - Creative content
+  - Complex narratives
+  - When you want concise, rephrased content
+- **Features**:
+  - Natural language generation
+  - Context understanding
+  - Creative rephrasing
+
+### 2. Extractive Summarization (TextRank)
+- **What**: Uses TextRank algorithm to extract key sentences
+- **Best For**:
+  - News articles
+  - Technical content
+  - When 100% accuracy is crucial
+- **Features**:
+  - Original sentence preservation
+  - Fast processing
+  - Perfect factual accuracy
+
+### Comparison Feature
+- Click "Compare Methods" to see both summaries side by side
+- Easy visual comparison of different approaches
+- Choose the summary that best suits your needs
 
 ## Advanced Features
 
@@ -116,6 +146,15 @@ A: No, Saransh AI works without any API keys.
 **Q: What types of articles work best?**
 A: News articles, blog posts, research papers, and long-form content work great.
 
+**Q: Which summarization method should I use?**
+A: Use AI (BART) for creative content and when you want concise, rephrased summaries. Use Extractive (TextRank) for news and when factual accuracy is crucial.
+
+**Q: How long does summarization take?**
+A: Extractive summarization is almost instant. AI summarization may take a few seconds depending on article length.
+
+**Q: Can I use both methods?**
+A: Yes! Use the "Compare Methods" feature to see both summaries side by side.
+
 ### Technical Questions
 
 **Q: How does the summarization work?**
@@ -127,16 +166,22 @@ A: Yes, all processing is done locally on your machine. We don't store any artic
 **Q: Can I use it offline?**
 A: You need internet to fetch articles, but the summarization works locally.
 
+**Q: Does it work with all websites?**
+A: Yes, Saransh AI works with most websites, including those with paywalls.
+
+**Q: Is the AI summary always different from the extractive one?**
+A: Yes, while they may cover similar points, the AI summary rephrases content while extractive uses original sentences.
+
 ### Feature Questions
 
 **Q: Can I save summaries?**
-A: Yes, use the copy button to save summaries anywhere.
+A: Yes, use the copy button to save summaries to your clipboard.
 
 **Q: Does it work with PDFs?**
 A: Currently, we support web articles only. PDF support is planned for future releases.
 
-**Q: Can I customize the summary length?**
-A: The algorithm automatically determines the optimal length (usually 15-20% of the original).
+**Q: Which method is more accurate?**
+A: Extractive is 100% factually accurate as it uses original sentences. AI provides more concise, rephrased summaries while maintaining accuracy.
 
 ## Need More Help?
 

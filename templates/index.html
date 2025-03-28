@@ -258,6 +258,7 @@
                                placeholder="Paste your article URL here">
                     </div>
                 </div>
+
                 <button type="submit"
                         class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-6 rounded-lg
                                hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 
@@ -277,9 +278,18 @@
                     <button id="back-button" class="flex items-center px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-gray-700">
                         <i class="fas fa-arrow-left mr-2"></i> Back
                     </button>
-                    <button id="summarize-button" class="flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
-                        <i class="fas fa-magic mr-2"></i> Generate Summary
-                    </button>
+                    <div class="flex items-center space-x-4">
+                        <select id="summary-method" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="ai">AI (BART) - More concise, may take longer</option>
+                            <option value="extractive">Extractive (TextRank) - Faster, 100% accurate</option>
+                        </select>
+                        <button id="summarize-button" class="flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
+                            <i class="fas fa-magic mr-2"></i> Generate Summary
+                        </button>
+                        <button id="compare-button" class="hidden flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                            <i class="fas fa-code-compare mr-2"></i> Compare Methods
+                        </button>
+                    </div>
                 </div>
                 <button id="copy-button" class="hidden px-4 py-2 text-indigo-500 hover:text-indigo-600 border border-indigo-500 rounded-lg transition-colors">
                     <i class="fas fa-copy mr-2"></i> Copy
@@ -295,6 +305,9 @@
                     <button id="summary-tab" class="tab-inactive px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out hidden">
                         Summary
                     </button>
+                    <button id="comparison-tab" class="tab-inactive px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out hidden">
+                        Comparison
+                    </button>
                 </div>
             </div>
             
@@ -308,9 +321,33 @@
                 <div id="article-body" class="prose max-w-none text-gray-600 article-content space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
             </div>
             
-            <!-- Summary Content (Hidden initially) -->
+            <!-- Summary Content -->
             <div id="summary-content" class="bg-white rounded-xl shadow-lg p-6 mb-8 hidden">
                 <div id="summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+            </div>
+
+            <!-- Comparison Content -->
+            <div id="comparison-content" class="hidden">
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Extractive Summary -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-bolt text-indigo-500 mr-2"></i>
+                            Extractive Summary
+                            <span class="ml-2 text-sm text-gray-500">(TextRank)</span>
+                        </h3>
+                        <div id="extractive-summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+                    </div>
+                    <!-- AI Summary -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-robot text-purple-500 mr-2"></i>
+                            AI Summary
+                            <span class="ml-2 text-sm text-gray-500">(BART)</span>
+                        </h3>
+                        <div id="ai-summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -326,54 +363,95 @@
     <div id="methodologyModal" class="modal">
         <div class="modal-content">
             <i class="fas fa-times close-modal text-gray-500" onclick="hideMethodologyModal()"></i>
-            <h2 class="text-2xl font-semibold gradient-text mb-4">AI Summarization Methodology</h2>
+            <h2 class="text-2xl font-semibold gradient-text mb-4">Summarization Methods</h2>
             
-            <div class="space-y-4">
-                <div>
-                    <h3 class="text-lg font-medium text-gray-800 mb-2">Summarization Approach</h3>
-                    <p class="text-gray-600">
-                        Saransh AI uses an <strong>extractive summarization</strong> approach based on the TextRank algorithm. 
-                        Unlike abstractive summarization (which can hallucinate content), extractive summarization selects 
-                        and arranges the most important sentences from the original text, ensuring factual accuracy.
+            <div class="space-y-6">
+                <!-- AI Summarization -->
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-robot text-purple-500 mr-2"></i>
+                        AI Summarization (BART)
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        Our advanced method using Facebook's BART (Bidirectional and Auto-Regressive Transformers) model,
+                        capable of generating concise, human-like summaries by understanding and rephrasing the content.
                     </p>
+
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">How BART Works</h4>
+                        <ol class="list-decimal pl-5 space-y-2 text-gray-600">
+                            <li>
+                                <strong>Text Chunking:</strong> Intelligently splits long articles into manageable pieces (512 tokens each)
+                            </li>
+                            <li>
+                                <strong>Neural Processing:</strong> Uses advanced AI to understand context, relationships, and key concepts
+                            </li>
+                            <li>
+                                <strong>Smart Generation:</strong> Creates new, coherent sentences that capture essential information
+                            </li>
+                            <li>
+                                <strong>Seamless Integration:</strong> Combines chunk summaries into a flowing, natural narrative
+                            </li>
+                        </ol>
+                    </div>
                 </div>
-                
-                <div>
-                    <h3 class="text-lg font-medium text-gray-800 mb-2">How TextRank Works</h3>
-                    <ol class="list-decimal pl-5 space-y-2 text-gray-600">
-                        <li>
-                            <strong>Content Extraction:</strong> We use Newspaper3k library to extract the main content from web pages, 
-                            with a fallback to BeautifulSoup for sites with complex structures.
-                        </li>
-                        <li>
-                            <strong>Sentence Tokenization:</strong> The extracted text is split into individual sentences for analysis.
-                        </li>
-                        <li>
-                            <strong>Similarity Graph:</strong> The algorithm creates a graph where sentences are nodes, and the 
-                            edges represent similarity between sentences (based on word overlap).
-                        </li>
-                        <li>
-                            <strong>PageRank Algorithm:</strong> Similar to how Google ranks web pages, TextRank identifies the most 
-                            central (important) sentences in the document.
-                        </li>
-                        <li>
-                            <strong>Sentence Selection:</strong> The top-ranked sentences are selected (about 15% of the original content) 
-                            and arranged in their original order to maintain context and flow.
-                        </li>
-                        <li>
-                            <strong>Final Formatting:</strong> The extracted sentences are organized into paragraphs for improved readability.
-                        </li>
-                    </ol>
+
+                <!-- Extractive Summarization -->
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-bolt text-indigo-500 mr-2"></i>
+                        Extractive Summarization (TextRank)
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        A reliable method that selects and arranges the most important sentences from the original text,
+                        ensuring 100% factual accuracy by preserving the author's exact words.
+                    </p>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">How TextRank Works</h4>
+                        <ol class="list-decimal pl-5 space-y-2 text-gray-600">
+                            <li>
+                                <strong>Content Extraction:</strong> Uses advanced tools to extract clean article content
+                            </li>
+                            <li>
+                                <strong>Sentence Analysis:</strong> Breaks text into sentences and identifies key terms
+                            </li>
+                            <li>
+                                <strong>Importance Mapping:</strong> Creates a network of sentences connected by shared concepts
+                            </li>
+                            <li>
+                                <strong>Smart Ranking:</strong> Uses Google's PageRank algorithm to identify vital sentences
+                            </li>
+                            <li>
+                                <strong>Natural Flow:</strong> Preserves original order of selected sentences for readability
+                            </li>
+                        </ol>
+                    </div>
                 </div>
-                
+
+                <!-- Comparison -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-800 mb-2">Key Benefits</h3>
-                    <ul class="list-disc pl-5 space-y-1 text-gray-600">
-                        <li><strong>Factual Accuracy:</strong> Uses only sentences from the original text, eliminating hallucinations</li>
-                        <li><strong>Contextual Understanding:</strong> Selects sentences based on their importance to the overall document</li>
-                        <li><strong>Content Preservation:</strong> Maintains the author's original phrasing and terminology</li>
-                        <li><strong>Fast Processing:</strong> Works efficiently without requiring large language models</li>
-                    </ul>
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Choose Your Method</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-purple-800 mb-2">BART Benefits</h4>
+                            <ul class="list-disc pl-4 space-y-1 text-gray-600">
+                                <li>More concise summaries</li>
+                                <li>Natural, flowing text</li>
+                                <li>Deep context understanding</li>
+                                <li>Creative rephrasing</li>
+                            </ul>
+                        </div>
+                        <div class="bg-indigo-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-indigo-800 mb-2">TextRank Benefits</h4>
+                            <ul class="list-disc pl-4 space-y-1 text-gray-600">
+                                <li>100% factual accuracy</li>
+                                <li>Lightning-fast results</li>
+                                <li>Original phrasing</li>
+                                <li>Perfect for news</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -403,6 +481,9 @@
         // Current article data
         let currentArticle = null;
         let currentSummary = null;
+        
+        let extractiveSummary = null;
+        let aiSummary = null;
         
         // Modal functionality
         function showMethodologyModal() {
@@ -497,121 +578,204 @@
             error.classList.add('hidden');
         });
         
-        // Summarize button functionality
+        // Add these utility functions
+        function showLoading() {
+            loading.style.display = 'block';
+            const circle = document.querySelector('.progress-ring-circle');
+            let progress = 0;
+            window.loadingInterval = setInterval(() => {
+                progress = Math.min(progress + 1, 100);
+                const offset = 251.2 - (251.2 * progress) / 100;
+                circle.style.strokeDashoffset = offset;
+            }, 50);
+        }
+
+        function hideLoading() {
+            if (window.loadingInterval) {
+                clearInterval(window.loadingInterval);
+            }
+            loading.style.display = 'none';
+        }
+
+        function showError(message) {
+            error.querySelector('p').textContent = message;
+            error.classList.remove('hidden');
+        }
+
+        function showSummaryTab() {
+            // Show the summary tab if it's hidden
+            summaryTab.classList.remove('hidden');
+            
+            // Switch to summary tab
+            summaryTab.classList.add('tab-active');
+            summaryTab.classList.remove('tab-inactive');
+            articleTab.classList.add('tab-inactive');
+            articleTab.classList.remove('tab-active');
+            
+            // Show summary content, hide article content
+            summaryContent.classList.remove('hidden');
+            articleContent.classList.add('hidden');
+            
+            // Show copy button
+            copyButton.classList.remove('hidden');
+
+            // Animate paragraphs
+            const paragraphs = summary.querySelectorAll('p');
+            paragraphs.forEach((p, i) => {
+                p.style.opacity = '0';
+                setTimeout(() => {
+                    p.style.opacity = '1';
+                }, i * 100);
+            });
+        }
+        
+        // Add comparison tab click handler
+        document.getElementById('comparison-tab').addEventListener('click', function() {
+            document.getElementById('comparison-tab').classList.add('tab-active');
+            document.getElementById('comparison-tab').classList.remove('tab-inactive');
+            document.getElementById('article-tab').classList.add('tab-inactive');
+            document.getElementById('article-tab').classList.remove('tab-active');
+            document.getElementById('summary-tab').classList.add('tab-inactive');
+            document.getElementById('summary-tab').classList.remove('tab-active');
+            
+            document.getElementById('comparison-content').classList.remove('hidden');
+            document.getElementById('article-content').classList.add('hidden');
+            document.getElementById('summary-content').classList.add('hidden');
+            
+            copyButton.classList.add('hidden');
+        });
+
+        // Add compare button click handler
+        document.getElementById('compare-button').addEventListener('click', async function() {
+            try {
+                if (!currentArticle) {
+                    showError('No article loaded to compare');
+                    return;
+                }
+
+                showLoading();
+                loadingText.textContent = 'Generating comparisons...';
+
+                // Generate extractive summary if not already generated
+                if (!extractiveSummary) {
+                    const extractiveResponse = await fetch('/api/summarize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            content: currentArticle.content,
+                            method: 'extractive'
+                        })
+                    });
+                    
+                    if (!extractiveResponse.ok) {
+                        throw new Error('Failed to generate extractive summary');
+                    }
+                    
+                    const extractiveData = await extractiveResponse.json();
+                    extractiveSummary = extractiveData.summary;
+                }
+
+                // Generate AI summary if not already generated
+                if (!aiSummary) {
+                    const aiResponse = await fetch('/api/summarize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            content: currentArticle.content,
+                            method: 'ai'
+                        })
+                    });
+                    
+                    if (!aiResponse.ok) {
+                        throw new Error('Failed to generate AI summary');
+                    }
+                    
+                    const aiData = await aiResponse.json();
+                    aiSummary = aiData.summary;
+                }
+
+                // Update comparison view
+                document.getElementById('extractive-summary').innerHTML = formatTextWithParagraphs(extractiveSummary);
+                document.getElementById('ai-summary').innerHTML = formatTextWithParagraphs(aiSummary);
+
+                // Show comparison tab
+                document.getElementById('comparison-tab').classList.remove('hidden');
+                document.getElementById('comparison-tab').click();
+                document.getElementById('compare-button').classList.remove('hidden');
+
+            } catch (err) {
+                showError(err.message || 'An error occurred while generating comparisons');
+            } finally {
+                hideLoading();
+            }
+        });
+        
+        // Modify summarize button to store summaries
         summarizeButton.addEventListener('click', async function() {
-            if (!currentArticle) return;
+            if (!currentArticle) {
+                showError('No article loaded to summarize');
+                return;
+            }
             
             try {
-                // If we already have a summary, just show it
-                if (currentSummary) {
-                    console.log("Using existing summary");
-                    summaryTab.classList.remove('hidden');
-                    
-                    // Force tab switching manually
-                    summaryTab.classList.add('tab-active');
-                    summaryTab.classList.remove('tab-inactive');
-                    articleTab.classList.add('tab-inactive');
-                    articleTab.classList.remove('tab-active');
-                    
-                    summaryContent.classList.remove('hidden');
-                    articleContent.classList.add('hidden');
-                    
-                    copyButton.classList.remove('hidden');
+                const method = document.getElementById('summary-method').value;
+                
+                // If we already have the summary for this method, just show it
+                if (method === 'extractive' && extractiveSummary) {
+                    currentSummary = extractiveSummary;
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    showSummaryTab();
+                    return;
+                } else if (method === 'ai' && aiSummary) {
+                    currentSummary = aiSummary;
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    showSummaryTab();
                     return;
                 }
                 
-                // Show loading state
-                loading.style.display = 'block';
+                showLoading();
                 loadingText.textContent = 'Generating summary...';
-                console.log("Starting summary generation...");
                 
-                // Animate progress ring
-                const circle = document.querySelector('.progress-ring-circle');
-                let progress = 0;
-                let interval = setInterval(() => {
-                    progress = Math.min(progress + 1, 100);
-                    const offset = 251.2 - (251.2 * progress) / 100;
-                    circle.style.strokeDashoffset = offset;
-                }, 50);
+                const response = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: currentArticle.content,
+                        method: method
+                    })
+                });
                 
-                try {
-                    // Send request to generate summary
-                    const response = await fetch('/api/summarize', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ content: currentArticle.content })
-                    });
-                    
-                    console.log("Summary API response received", response.status);
+                if (!response.ok) {
                     const data = await response.json();
-                    console.log("Summary data received", typeof data, Object.keys(data));
-                    
-                    // Always clear the loading state
-                    clearInterval(interval);
-                    loading.style.display = 'none';
-                    console.log("Cleared loading state");
-                    
-                    if (response.ok && data.summary) {
-                        currentSummary = data.summary;
-                        console.log("Summary length:", currentSummary.length);
-                        
-                        // Display summary
-                        summary.innerHTML = formatTextWithParagraphs(currentSummary);
-                        console.log("Summary HTML set, paragraphs:", summary.querySelectorAll('p').length);
-                        
-                        // Show summary tab
-                        summaryTab.classList.remove('hidden');
-                        
-                        // Force tab switching manually instead of calling click()
-                        summaryTab.classList.add('tab-active');
-                        summaryTab.classList.remove('tab-inactive');
-                        articleTab.classList.add('tab-inactive');
-                        articleTab.classList.remove('tab-active');
-                        
-                        summaryContent.classList.remove('hidden');
-                        articleContent.classList.add('hidden');
-                        
-                        copyButton.classList.remove('hidden');
-                        
-                        // Fade in paragraphs
-                        const paragraphs = document.querySelectorAll('#summary p');
-                        console.log("Found paragraphs for animation:", paragraphs.length);
-                        
-                        if (paragraphs.length > 0) {
-                            paragraphs.forEach((p, i) => {
-                                p.style.opacity = '0';
-                                setTimeout(() => {
-                                    p.style.opacity = '1';
-                                    console.log(`Paragraph ${i} made visible`);
-                                }, i * 100);
-                            });
-                        } else {
-                            console.log("No paragraphs found to animate");
-                        }
-                    } else {
-                        console.error("Summary response not OK or missing summary", data);
-                        throw new Error(data.error || 'Failed to generate summary');
-                    }
-                } catch (fetchError) {
-                    // Ensure loading state is cleared in case of fetch error
-                    clearInterval(interval);
-                    loading.style.display = 'none';
-                    console.error('Fetch error:', fetchError);
-                    throw fetchError;
-                }
-            } catch (err) {
-                // Ensure loading state is cleared in case of any other error
-                if (loading.style.display === 'block') {
-                    clearInterval(interval);
-                    loading.style.display = 'none';
-                    console.log("Cleared loading state after error");
+                    throw new Error(data.error || 'Failed to generate summary');
                 }
                 
-                console.error('Error:', err);
-                error.querySelector('p').textContent = err.message || 'An error occurred while generating the summary.';
-                error.classList.remove('hidden');
+                const data = await response.json();
+                
+                if (data.summary) {
+                    currentSummary = data.summary;
+                    // Store the summary based on method
+                    if (method === 'extractive') {
+                        extractiveSummary = data.summary;
+                    } else {
+                        aiSummary = data.summary;
+                    }
+                    
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    showSummaryTab();
+                    
+                    // Show compare button if we have both summaries
+                    if (extractiveSummary && aiSummary) {
+                        document.getElementById('compare-button').classList.remove('hidden');
+                    }
+                } else {
+                    throw new Error('No summary was generated');
+                }
+                
+            } catch (err) {
+                showError(err.message || 'An error occurred while generating the summary');
+            } finally {
+                hideLoading();
             }
         });
         
@@ -682,6 +846,60 @@
                 loading.style.display = 'none';
             }
         });
+
+        async function processURL(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            
+            const url = document.getElementById('url').value.trim();
+            
+            if (!url) {
+                showError('Please enter a valid URL');
+                return;
+            }
+
+            try {
+                showLoading();
+                loadingText.textContent = 'Fetching article...';
+                
+                // Fetch the article
+                const articleResponse = await fetch('/api/article', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                if (!articleResponse.ok) {
+                    const error = await articleResponse.json();
+                    throw new Error(error.error || 'Failed to fetch article');
+                }
+                
+                const articleData = await articleResponse.json();
+                currentArticle = articleData.article;
+                
+                // Update the UI with article content
+                articleTitle.textContent = currentArticle.title;
+                articleSourceLink.textContent = new URL(currentArticle.url).hostname;
+                articleSourceLink.href = currentArticle.url;
+                articleBody.innerHTML = formatTextWithParagraphs(currentArticle.content);
+                
+                // Show the content container
+                urlFormContainer.classList.add('hidden');
+                contentContainer.classList.remove('hidden');
+                
+                // Reset tabs and summary
+                articleTab.click();
+                summaryTab.classList.add('hidden');
+                currentSummary = null;
+                
+                hideLoading();
+                
+            } catch (error) {
+                hideLoading();
+                showError(error.message);
+            }
+        }
     </script>
 </body>
 </html> 

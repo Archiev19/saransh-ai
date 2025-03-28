@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
+from transformers import pipeline
+import torch
 
 # Load environment variables
 load_dotenv()
@@ -458,9 +460,177 @@ class ExtractiveTextRankSummarizer:
             logger.error(f"Error in post_process_summary: {str(e)}")
             return summary
 
+class HuggingFaceAISummarizer:
+    def __init__(self):
+        self.model_name = "facebook/bart-large-cnn"
+        logger.info(f"Initializing HuggingFace summarizer with model: {self.model_name}")
+        try:
+            logger.info("Loading summarization pipeline...")
+            self.summarizer = pipeline("summarization", model=self.model_name)
+            logger.info("HuggingFace summarizer initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing HuggingFace summarizer: {str(e)}")
+            raise
+
+    def chunk_text(self, text, max_chunk_size=512):
+        """Split text into chunks that fit within model's max token limit."""
+        logger.info(f"Chunking text of length {len(text)} with max_chunk_size {max_chunk_size}")
+        chunks = []
+        sentences = sent_tokenize(text)
+        current_chunk = []
+        current_length = 0
+        
+        for sentence in sentences:
+            # Rough estimate of token length (words + some padding)
+            sentence_length = len(sentence.split())
+            logger.info(f"Processing sentence of length {sentence_length} tokens")
+            
+            if sentence_length > max_chunk_size:
+                # If we have a current chunk, add it to chunks
+                if current_chunk:
+                    chunk_text = " ".join(current_chunk)
+                    logger.info(f"Adding full chunk of length {len(chunk_text)}")
+                    chunks.append(chunk_text)
+                    current_chunk = []
+                    current_length = 0
+                
+                # Split long sentence into smaller parts
+                words = sentence.split()
+                current_part = []
+                
+                for word in words:
+                    current_part.append(word)
+                    if len(current_part) >= max_chunk_size:
+                        chunk_text = " ".join(current_part)
+                        logger.info(f"Adding split chunk of length {len(chunk_text)}")
+                        chunks.append(chunk_text)
+                        current_part = []
+                
+                if current_part:
+                    current_chunk = current_part
+                    current_length = len(current_part)
+            
+            elif current_length + sentence_length <= max_chunk_size:
+                current_chunk.append(sentence)
+                current_length += sentence_length
+            else:
+                chunk_text = " ".join(current_chunk)
+                logger.info(f"Adding chunk of length {len(chunk_text)}")
+                chunks.append(chunk_text)
+                current_chunk = [sentence]
+                current_length = sentence_length
+        
+        if current_chunk:
+            chunk_text = " ".join(current_chunk)
+            logger.info(f"Adding final chunk of length {len(chunk_text)}")
+            chunks.append(chunk_text)
+        
+        logger.info(f"Created {len(chunks)} chunks")
+        return chunks
+
+    def summarize(self, text, max_length=150, min_length=50):
+        """Generate AI-powered summary using BART model."""
+        try:
+            if not text or len(text.strip()) < 100:
+                logger.warning("Text too short for AI summarization")
+                return text
+
+            logger.info(f"Starting AI summarization for text of length: {len(text)}")
+            
+            # Verify summarizer is initialized
+            if not hasattr(self, 'summarizer'):
+                logger.error("Summarizer not initialized")
+                return None
+                
+            # Split text into chunks if it's too long
+            chunks = self.chunk_text(text)
+            logger.info(f"Split text into {len(chunks)} chunks")
+            summaries = []
+            
+            for i, chunk in enumerate(chunks):
+                try:
+                    logger.info(f"Processing chunk {i+1}/{len(chunks)} of length {len(chunk)}")
+                    
+                    # Add safety check for chunk length
+                    if len(chunk.split()) < 10:
+                        logger.warning(f"Chunk {i+1} too short, skipping")
+                        continue
+                        
+                    summary = self.summarizer(chunk, 
+                                           max_length=max_length,
+                                           min_length=min_length,
+                                           do_sample=False)
+                                           
+                    if not summary or not isinstance(summary, list) or len(summary) == 0:
+                        logger.error(f"Invalid summary format for chunk {i+1}")
+                        continue
+                        
+                    summary_text = summary[0].get('summary_text')
+                    if not summary_text:
+                        logger.error(f"No summary text generated for chunk {i+1}")
+                        continue
+                        
+                    logger.info(f"Generated summary for chunk {i+1}: {len(summary_text)} chars")
+                    summaries.append(summary_text)
+                except Exception as e:
+                    logger.error(f"Error summarizing chunk {i+1}: {str(e)}")
+                    logger.error(f"Chunk content: {chunk[:100]}...")
+                    continue
+            
+            if not summaries:
+                logger.error("No summaries were generated for any chunks")
+                return None
+                
+            # Combine summaries
+            final_summary = " ".join(summaries)
+            logger.info(f"Combined {len(summaries)} summaries into final summary of length: {len(final_summary)}")
+            
+            # Post-process the summary
+            final_summary = self.post_process_summary(final_summary)
+            logger.info("Post-processed summary successfully")
+            
+            return final_summary
+            
+        except Exception as e:
+            logger.error(f"Error in AI summarization: {str(e)}")
+            logger.error("Full traceback:", exc_info=True)
+            return None
+
+    def post_process_summary(self, summary):
+        """Clean up the generated summary."""
+        if not summary:
+            return summary
+            
+        # Remove extra whitespace
+        summary = re.sub(r'\s+', ' ', summary).strip()
+        
+        # Fix common issues with AI-generated text
+        summary = re.sub(r'\s+([.,!?])', r'\1', summary)
+        summary = re.sub(r'([.,!?])([A-Za-z])', r'\1 \2', summary)
+        
+        # Break into paragraphs if long enough
+        sentences = sent_tokenize(summary)
+        if len(sentences) > 5:
+            paragraphs = []
+            current_para = []
+            
+            for sentence in sentences:
+                current_para.append(sentence)
+                if len(current_para) >= 3:  # 3 sentences per paragraph
+                    paragraphs.append(" ".join(current_para))
+                    current_para = []
+            
+            if current_para:
+                paragraphs.append(" ".join(current_para))
+            
+            summary = "\n\n".join(paragraphs)
+        
+        return summary
+
 app = Flask(__name__)
 content_extractor = ContentExtractor()
 summarizer = ExtractiveTextRankSummarizer()
+ai_summarizer = HuggingFaceAISummarizer()
 
 @app.route('/')
 def home():
@@ -509,11 +679,12 @@ def generate_summary():
         
         url = data.get('url')
         content = data.get('content')
+        method = data.get('method', 'extractive')  # Default to extractive
         
         if not (url or content):
             logger.error("Missing required parameters: neither URL nor content provided")
             return jsonify({'error': 'Either URL or content is required'}), 400
-            
+        
         try:
             if url and not content:
                 # Extract content from URL
@@ -532,26 +703,27 @@ def generate_summary():
                 logger.error(f"Content too short for summarization: {len(content) if content else 0} chars")
                 return jsonify({'error': 'Content too short for summarization'}), 400
             
-            # Generate extractive summary
-            logger.info(f"Starting summarization process for content of length: {len(content)}")
-            summary = summarizer.process_article(content)
+            # Generate summary based on method
+            logger.info(f"Starting {method} summarization process")
+            if method.lower() == 'ai':
+                summary = ai_summarizer.summarize(content)
+                if not summary:
+                    logger.warning("AI summarization failed, falling back to extractive")
+                    summary = summarizer.process_article(content)
+            else:
+                summary = summarizer.process_article(content)
+            
             logger.info(f"Generated summary with {len(summary)} characters")
             
             # Validate summary
             if not summary or len(summary.strip()) < 50:
-                logger.warning("Summary generation produced insufficient results, using fallback")
-                # Fallback to simple extraction of first 3 sentences
-                sentences = sent_tokenize(content)
-                summary = " ".join(sentences[:min(3, len(sentences))])
-                logger.info(f"Generated fallback summary with {len(summary)} characters")
-                
-            if not summary:
-                logger.error("All summary generation methods failed")
+                logger.error("Summary generation failed")
                 return jsonify({'error': 'Failed to generate a summary. Please try again.'}), 500
             
             # Add debug info in development mode
             response_data = {
                 'summary': summary,
+                'method_used': method.lower()
             }
             
             if app.debug:
@@ -561,8 +733,8 @@ def generate_summary():
                     'paragraphs': len(summary.split('\n\n')),
                     'sentences': len(sent_tokenize(summary))
                 }
-                
-            logger.info(f"Returning summary response: {len(summary)} chars, {response_data.get('debug', {}).get('paragraphs', 0)} paragraphs")
+            
+            logger.info(f"Returning summary response: {len(summary)} chars using {method} method")
             return jsonify(response_data)
             
         except ValueError as e:
@@ -571,7 +743,7 @@ def generate_summary():
         except Exception as e:
             logger.error(f"Error generating summary: {str(e)}", exc_info=True)
             return jsonify({'error': 'An error occurred while generating the summary'}), 500
-        
+    
     except Exception as e:
         logger.error(f"Error processing summary request: {str(e)}", exc_info=True)
         return jsonify({'error': 'Invalid request format'}), 400
