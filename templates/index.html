@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saransh AI - Intelligent Article Reader & Summarizer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --bg-color: #f0f4f8;  /* Soothing pastel blue-gray */
+            --card-bg: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a5568;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+        
+        .gradient-text {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .gradient-border {
+            position: relative;
+            border: 2px solid transparent;
+            background: linear-gradient(#ffffff, #ffffff) padding-box,
+                        var(--primary-gradient) border-box;
+            border-radius: 0.75rem;
+        }
+        
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        
+        .loading-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            stroke: #6366f1;
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: var(--card-bg);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;  /* Maximum height */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;  /* Enable scrolling */
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #c7d2fe;
+            border-radius: 10px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+        
+        .close-modal {
+            position: sticky;  /* Make close button stick to top */
+            top: 0;
+            float: right;
+            cursor: pointer;
+            background: var(--card-bg);
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            z-index: 1;
+        }
+        
+        .info-icon {
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: color 0.2s ease;
+        }
+        
+        .info-icon:hover {
+            color: #6366f1;
+        }
+        
+        .tab-active {
+            color: #6366f1;
+            border-bottom: 2px solid #6366f1;
+        }
+        
+        .tab-inactive {
+            color: #9ca3af;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .article-content {
+            line-height: 1.8;
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+        
+        .article-content p {
+            margin-bottom: 1.25rem;
+        }
+        
+        /* Scrollbar styling */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #c7d2fe;
+            border-radius: 10px;
+        }
+        
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="loading-content">
+            <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring-circle"
+                    stroke-width="6"
+                    fill="transparent"
+                    r="40"
+                    cx="60"
+                    cy="60"/>
+            </svg>
+            <p id="loading-text" class="text-white mt-4 font-medium">Analyzing article...</p>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-10">
+            <div class="inline-block animate-pulse-slow">
+                <h1 class="text-5xl md:text-6xl font-bold gradient-text mb-4">Saransh AI</h1>
+            </div>
+            <p class="text-xl text-gray-600">Read articles & get AI-powered summaries</p>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="feature-card bg-white rounded-xl shadow-lg p-6">
+                <div class="text-indigo-500 mb-4">
+                    <i class="fas fa-bolt text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">
+                    Instant Analysis 
+                    <i class="fas fa-info-circle info-icon text-gray-400 hover:text-indigo-500" onclick="showMethodologyModal()"></i>
+                </h3>
+                <p class="text-gray-600">Get summaries in seconds using advanced AI technology</p>
+            </div>
+            <div class="feature-card bg-white rounded-xl shadow-lg p-6">
+                <div class="text-indigo-500 mb-4">
+                    <i class="fas fa-unlock-alt text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Paywall Bypass</h3>
+                <p class="text-gray-600">Access content behind paywalls with intelligent techniques</p>
+            </div>
+            <div class="feature-card bg-white rounded-xl shadow-lg p-6">
+                <div class="text-indigo-500 mb-4">
+                    <i class="fas fa-globe text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Universal Support</h3>
+                <p class="text-gray-600">Works with articles from any website or news source</p>
+            </div>
+        </div>
+
+        <!-- URL Input Form -->
+        <div id="url-form-container" class="gradient-border bg-white p-8 mb-8">
+            <form id="articleForm" class="space-y-6">
+                <div>
+                    <label for="url" class="block text-sm font-medium text-gray-700 mb-2">
+                        Article URL
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-link absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="url" name="url" required
+                               class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg 
+                                      focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                               placeholder="Paste your article URL here">
+                    </div>
+                </div>
+                <button type="submit"
+                        class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-6 rounded-lg
+                               hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 
+                               focus:ring-offset-2 focus:ring-indigo-500 transform transition-transform duration-200 
+                               hover:scale-[1.02] font-medium">
+                    <i class="fas fa-newspaper mr-2"></i>
+                    Read Article
+                </button>
+            </form>
+        </div>
+
+        <!-- Article and Summary Display -->
+        <div id="content-container" class="hidden">
+            <!-- Controls for content -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex gap-4">
+                    <button id="back-button" class="flex items-center px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-gray-700">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button id="summarize-button" class="flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
+                        <i class="fas fa-magic mr-2"></i> Generate Summary
+                    </button>
+                </div>
+                <button id="copy-button" class="hidden px-4 py-2 text-indigo-500 hover:text-indigo-600 border border-indigo-500 rounded-lg transition-colors">
+                    <i class="fas fa-copy mr-2"></i> Copy
+                </button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="mb-6 border-b border-gray-200">
+                <div class="flex -mb-px">
+                    <button id="article-tab" class="tab-active px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out">
+                        Article
+                    </button>
+                    <button id="summary-tab" class="tab-inactive px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out hidden">
+                        Summary
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Article Content -->
+            <div id="article-content" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 id="article-title" class="text-2xl font-semibold text-gray-800 mb-4"></h2>
+                <div id="article-source" class="text-indigo-500 mb-6">
+                    <i class="fas fa-link mr-2"></i>
+                    <a id="article-source-link" href="#" target="_blank" class="hover:underline"></a>
+                </div>
+                <div id="article-body" class="prose max-w-none text-gray-600 article-content space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+            </div>
+            
+            <!-- Summary Content (Hidden initially) -->
+            <div id="summary-content" class="bg-white rounded-xl shadow-lg p-6 mb-8 hidden">
+                <div id="summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+            </div>
+        </div>
+
+        <div id="error" class="bg-red-50 border border-red-200 rounded-lg p-6 hidden">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                <p class="text-red-600"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Methodology Modal -->
+    <div id="methodologyModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal text-gray-500" onclick="hideMethodologyModal()"></i>
+            <h2 class="text-2xl font-semibold gradient-text mb-4">AI Summarization Methodology</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Summarization Approach</h3>
+                    <p class="text-gray-600">
+                        Saransh AI uses an <strong>extractive summarization</strong> approach based on the TextRank algorithm. 
+                        Unlike abstractive summarization (which can hallucinate content), extractive summarization selects 
+                        and arranges the most important sentences from the original text, ensuring factual accuracy.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">How TextRank Works</h3>
+                    <ol class="list-decimal pl-5 space-y-2 text-gray-600">
+                        <li>
+                            <strong>Content Extraction:</strong> We use Newspaper3k library to extract the main content from web pages, 
+                            with a fallback to BeautifulSoup for sites with complex structures.
+                        </li>
+                        <li>
+                            <strong>Sentence Tokenization:</strong> The extracted text is split into individual sentences for analysis.
+                        </li>
+                        <li>
+                            <strong>Similarity Graph:</strong> The algorithm creates a graph where sentences are nodes, and the 
+                            edges represent similarity between sentences (based on word overlap).
+                        </li>
+                        <li>
+                            <strong>PageRank Algorithm:</strong> Similar to how Google ranks web pages, TextRank identifies the most 
+                            central (important) sentences in the document.
+                        </li>
+                        <li>
+                            <strong>Sentence Selection:</strong> The top-ranked sentences are selected (about 15% of the original content) 
+                            and arranged in their original order to maintain context and flow.
+                        </li>
+                        <li>
+                            <strong>Final Formatting:</strong> The extracted sentences are organized into paragraphs for improved readability.
+                        </li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Key Benefits</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                        <li><strong>Factual Accuracy:</strong> Uses only sentences from the original text, eliminating hallucinations</li>
+                        <li><strong>Contextual Understanding:</strong> Selects sentences based on their importance to the overall document</li>
+                        <li><strong>Content Preservation:</strong> Maintains the author's original phrasing and terminology</li>
+                        <li><strong>Fast Processing:</strong> Works efficiently without requiring large language models</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const articleForm = document.getElementById('articleForm');
+        const urlInput = document.getElementById('url');
+        const loading = document.querySelector('.loading');
+        const loadingText = document.getElementById('loading-text');
+        const error = document.getElementById('error');
+        const urlFormContainer = document.getElementById('url-form-container');
+        const contentContainer = document.getElementById('content-container');
+        const backButton = document.getElementById('back-button');
+        const summarizeButton = document.getElementById('summarize-button');
+        const copyButton = document.getElementById('copy-button');
+        const articleTab = document.getElementById('article-tab');
+        const summaryTab = document.getElementById('summary-tab');
+        const articleContent = document.getElementById('article-content');
+        const summaryContent = document.getElementById('summary-content');
+        const articleTitle = document.getElementById('article-title');
+        const articleSourceLink = document.getElementById('article-source-link');
+        const articleBody = document.getElementById('article-body');
+        const summary = document.getElementById('summary');
+        
+        // Current article data
+        let currentArticle = null;
+        let currentSummary = null;
+        
+        // Modal functionality
+        function showMethodologyModal() {
+            document.getElementById('methodologyModal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function hideMethodologyModal() {
+            document.getElementById('methodologyModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Re-enable background scrolling
+        }
+        
+        // Close modal if clicked outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('methodologyModal');
+            if (event.target === modal) {
+                hideMethodologyModal();
+            }
+        }
+        
+        // Format text with paragraphs
+        function formatTextWithParagraphs(text) {
+            if (!text) return '';
+            // Split by double newlines to preserve paragraphs
+            return text.split('\n\n')
+                .filter(para => para.trim().length > 0)
+                .map(para => `<p>${para.trim()}</p>`)
+                .join('');
+        }
+        
+        // Tab switching
+        articleTab.addEventListener('click', function() {
+            console.log("Article tab clicked");
+            articleTab.classList.add('tab-active');
+            articleTab.classList.remove('tab-inactive');
+            summaryTab.classList.add('tab-inactive');
+            summaryTab.classList.remove('tab-active');
+            
+            articleContent.classList.remove('hidden');
+            summaryContent.classList.add('hidden');
+            
+            copyButton.classList.add('hidden');
+        });
+        
+        summaryTab.addEventListener('click', function() {
+            console.log("Summary tab clicked directly");
+            summaryTab.classList.add('tab-active');
+            summaryTab.classList.remove('tab-inactive');
+            articleTab.classList.add('tab-inactive');
+            articleTab.classList.remove('tab-active');
+            
+            summaryContent.classList.remove('hidden');
+            articleContent.classList.add('hidden');
+            
+            copyButton.classList.remove('hidden');
+        });
+        
+        // Copy to clipboard functionality
+        copyButton.addEventListener('click', function() {
+            if (currentSummary) {
+                navigator.clipboard.writeText(currentSummary).then(() => {
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check mr-2"></i> Copied!';
+                    setTimeout(() => {
+                        copyButton.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        });
+        
+        // Back button functionality
+        backButton.addEventListener('click', function() {
+            contentContainer.classList.add('hidden');
+            urlFormContainer.classList.remove('hidden');
+            urlInput.value = '';
+            currentArticle = null;
+            currentSummary = null;
+            
+            // Reset UI
+            articleTab.classList.add('tab-active');
+            articleTab.classList.remove('tab-inactive');
+            summaryTab.classList.add('tab-inactive');
+            summaryTab.classList.remove('tab-active');
+            summaryTab.classList.add('hidden');
+            
+            articleContent.classList.remove('hidden');
+            summaryContent.classList.add('hidden');
+            
+            copyButton.classList.add('hidden');
+            
+            // Hide any errors
+            error.classList.add('hidden');
+        });
+        
+        // Summarize button functionality
+        summarizeButton.addEventListener('click', async function() {
+            if (!currentArticle) return;
+            
+            try {
+                // If we already have a summary, just show it
+                if (currentSummary) {
+                    console.log("Using existing summary");
+                    summaryTab.classList.remove('hidden');
+                    
+                    // Force tab switching manually
+                    summaryTab.classList.add('tab-active');
+                    summaryTab.classList.remove('tab-inactive');
+                    articleTab.classList.add('tab-inactive');
+                    articleTab.classList.remove('tab-active');
+                    
+                    summaryContent.classList.remove('hidden');
+                    articleContent.classList.add('hidden');
+                    
+                    copyButton.classList.remove('hidden');
+                    return;
+                }
+                
+                // Show loading state
+                loading.style.display = 'block';
+                loadingText.textContent = 'Generating summary...';
+                console.log("Starting summary generation...");
+                
+                // Animate progress ring
+                const circle = document.querySelector('.progress-ring-circle');
+                let progress = 0;
+                let interval = setInterval(() => {
+                    progress = Math.min(progress + 1, 100);
+                    const offset = 251.2 - (251.2 * progress) / 100;
+                    circle.style.strokeDashoffset = offset;
+                }, 50);
+                
+                try {
+                    // Send request to generate summary
+                    const response = await fetch('/api/summarize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ content: currentArticle.content })
+                    });
+                    
+                    console.log("Summary API response received", response.status);
+                    const data = await response.json();
+                    console.log("Summary data received", typeof data, Object.keys(data));
+                    
+                    // Always clear the loading state
+                    clearInterval(interval);
+                    loading.style.display = 'none';
+                    console.log("Cleared loading state");
+                    
+                    if (response.ok && data.summary) {
+                        currentSummary = data.summary;
+                        console.log("Summary length:", currentSummary.length);
+                        
+                        // Display summary
+                        summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                        console.log("Summary HTML set, paragraphs:", summary.querySelectorAll('p').length);
+                        
+                        // Show summary tab
+                        summaryTab.classList.remove('hidden');
+                        
+                        // Force tab switching manually instead of calling click()
+                        summaryTab.classList.add('tab-active');
+                        summaryTab.classList.remove('tab-inactive');
+                        articleTab.classList.add('tab-inactive');
+                        articleTab.classList.remove('tab-active');
+                        
+                        summaryContent.classList.remove('hidden');
+                        articleContent.classList.add('hidden');
+                        
+                        copyButton.classList.remove('hidden');
+                        
+                        // Fade in paragraphs
+                        const paragraphs = document.querySelectorAll('#summary p');
+                        console.log("Found paragraphs for animation:", paragraphs.length);
+                        
+                        if (paragraphs.length > 0) {
+                            paragraphs.forEach((p, i) => {
+                                p.style.opacity = '0';
+                                setTimeout(() => {
+                                    p.style.opacity = '1';
+                                    console.log(`Paragraph ${i} made visible`);
+                                }, i * 100);
+                            });
+                        } else {
+                            console.log("No paragraphs found to animate");
+                        }
+                    } else {
+                        console.error("Summary response not OK or missing summary", data);
+                        throw new Error(data.error || 'Failed to generate summary');
+                    }
+                } catch (fetchError) {
+                    // Ensure loading state is cleared in case of fetch error
+                    clearInterval(interval);
+                    loading.style.display = 'none';
+                    console.error('Fetch error:', fetchError);
+                    throw fetchError;
+                }
+            } catch (err) {
+                // Ensure loading state is cleared in case of any other error
+                if (loading.style.display === 'block') {
+                    clearInterval(interval);
+                    loading.style.display = 'none';
+                    console.log("Cleared loading state after error");
+                }
+                
+                console.error('Error:', err);
+                error.querySelector('p').textContent = err.message || 'An error occurred while generating the summary.';
+                error.classList.remove('hidden');
+            }
+        });
+        
+        // Form submission to fetch article
+        articleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            let url = urlInput.value.trim();
+            
+            // Reset UI
+            error.classList.add('hidden');
+            loading.style.display = 'block';
+            loadingText.textContent = 'Fetching article...';
+            
+            // Animate progress ring
+            const circle = document.querySelector('.progress-ring-circle');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress = Math.min(progress + 1, 100);
+                const offset = 251.2 - (251.2 * progress) / 100;
+                circle.style.strokeDashoffset = offset;
+            }, 50);
+            
+            try {
+                // Fetch article content
+                const response = await fetch('/api/article', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentArticle = data.article;
+                    
+                    // Format the content for display - using our helper function for proper paragraph formatting
+                    articleBody.innerHTML = formatTextWithParagraphs(currentArticle.content);
+                    
+                    // Update the UI
+                    articleTitle.textContent = currentArticle.title;
+                    articleSourceLink.textContent = new URL(currentArticle.url).hostname;
+                    articleSourceLink.href = currentArticle.url;
+                    
+                    // Hide form, show content
+                    urlFormContainer.classList.add('hidden');
+                    contentContainer.classList.remove('hidden');
+                    
+                    // Reset tabs
+                    articleTab.click();
+                    summaryTab.classList.add('hidden');
+                    currentSummary = null;
+                } else {
+                    throw new Error(data.error || 'Failed to fetch article');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                error.querySelector('p').textContent = err.message || 'An error occurred while fetching the article.';
+                error.classList.remove('hidden');
+                
+                // Show form again
+                urlFormContainer.classList.remove('hidden');
+                contentContainer.classList.add('hidden');
+            } finally {
+                clearInterval(interval);
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 
