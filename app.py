@@ -722,7 +722,7 @@ def generate_summary():
             
             # Add debug info in development mode
             response_data = {
-                'summary': summary,
+            'summary': summary,
                 'method_used': method.lower()
             }
             
@@ -743,10 +743,11 @@ def generate_summary():
         except Exception as e:
             logger.error(f"Error generating summary: {str(e)}", exc_info=True)
             return jsonify({'error': 'An error occurred while generating the summary'}), 500
-    
+        
     except Exception as e:
         logger.error(f"Error processing summary request: {str(e)}", exc_info=True)
         return jsonify({'error': 'Invalid request format'}), 400
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5003, debug=True) 
+    port = int(os.environ.get('PORT', 5003))
+    app.run(host='0.0.0.0', port=port, debug=False) 
