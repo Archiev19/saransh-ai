@@ -289,6 +289,12 @@
                         <button id="compare-button" class="hidden flex items-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
                             <i class="fas fa-code-compare mr-2"></i> Compare Methods
                         </button>
+                        <button id="faq-button" class="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-question-circle mr-2"></i> Generate FAQs
+                        </button>
+                        <button id="settings-button" class="flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-cog mr-2"></i> Settings
+                        </button>
                     </div>
                 </div>
                 <button id="copy-button" class="hidden px-4 py-2 text-indigo-500 hover:text-indigo-600 border border-indigo-500 rounded-lg transition-colors">
@@ -297,36 +303,17 @@
             </div>
             
             <!-- Tab Navigation -->
-            <div class="mb-6 border-b border-gray-200">
-                <div class="flex -mb-px">
-                    <button id="article-tab" class="tab-active px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out">
-                        Article
-                    </button>
-                    <button id="summary-tab" class="tab-inactive px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out hidden">
-                        Summary
-                    </button>
-                    <button id="comparison-tab" class="tab-inactive px-6 py-3 font-medium text-lg transition-colors duration-200 ease-in-out hidden">
-                        Comparison
-                    </button>
-                </div>
+            <div class="flex border-b border-gray-200 mb-4">
+                <button id="article-tab" class="px-4 py-2 text-indigo-500 border-b-2 border-indigo-500">Article</button>
+                <button id="summary-tab" class="px-4 py-2 text-gray-500 hidden">Summary</button>
+                <button id="comparison-tab" class="px-4 py-2 text-gray-500 hidden">Comparison</button>
+                <button id="faq-tab" class="px-4 py-2 text-gray-500 hidden">FAQs</button>
+                <button id="analytics-tab" class="px-4 py-2 text-gray-500 hidden">Analytics</button>
             </div>
             
-            <!-- Article Content -->
-            <div id="article-content" class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                <h2 id="article-title" class="text-2xl font-semibold text-gray-800 mb-4"></h2>
-                <div id="article-source" class="text-indigo-500 mb-6">
-                    <i class="fas fa-link mr-2"></i>
-                    <a id="article-source-link" href="#" target="_blank" class="hover:underline"></a>
-                </div>
-                <div id="article-body" class="prose max-w-none text-gray-600 article-content space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
-            </div>
-            
-            <!-- Summary Content -->
-            <div id="summary-content" class="bg-white rounded-xl shadow-lg p-6 mb-8 hidden">
-                <div id="summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
-            </div>
-
-            <!-- Comparison Content -->
+            <!-- Content -->
+            <div id="article-content" class="prose max-w-none"></div>
+            <div id="summary-content" class="hidden prose max-w-none"></div>
             <div id="comparison-content" class="hidden">
                 <div class="grid grid-cols-2 gap-6">
                     <!-- Extractive Summary -->
@@ -346,6 +333,26 @@
                             <span class="ml-2 text-sm text-gray-500">(BART)</span>
                         </h3>
                         <div id="ai-summary" class="prose max-w-none text-gray-600 space-y-4 leading-relaxed overflow-y-auto scrollbar-custom" style="max-height: 70vh;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="faq-content" class="hidden">
+                <div class="space-y-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Frequently Asked Questions</h3>
+                    <div id="faq-list" class="space-y-4"></div>
+                </div>
+            </div>
+            <div id="analytics-content" class="hidden">
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Original Text Analytics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Original Text Analytics</h3>
+                        <div id="original-analytics" class="space-y-4"></div>
+                    </div>
+                    <!-- Summary Analytics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Summary Analytics</h3>
+                        <div id="summary-analytics" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -457,6 +464,56 @@
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="hideSettingsModal()"></i>
+            <h2 class="text-2xl font-semibold gradient-text mb-4">Summary Settings</h2>
+            
+            <div class="space-y-6">
+                <!-- Compression Settings -->
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Compression</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Compression Ratio</label>
+                            <input type="range" id="compression-ratio" min="10" max="50" value="30" class="w-full">
+                            <div class="flex justify-between text-sm text-gray-500">
+                                <span>10%</span>
+                                <span id="compression-value">30%</span>
+                                <span>50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Length Settings -->
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">Length Controls</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Minimum Sentences</label>
+                            <input type="number" id="min-sentences" min="2" max="10" value="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Maximum Sentences</label>
+                            <input type="number" id="max-sentences" min="5" max="20" value="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Settings -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">FAQ Generation</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Number of Questions</label>
+                        <input type="number" id="num-questions" min="3" max="10" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // DOM Elements
         const articleForm = document.getElementById('articleForm');
@@ -484,6 +541,8 @@
         
         let extractiveSummary = null;
         let aiSummary = null;
+        
+        let currentAnalytics = null;
         
         // Modal functionality
         function showMethodologyModal() {
@@ -900,6 +959,229 @@
                 showError(error.message);
             }
         }
+
+        function showSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function hideSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        function updateCompressionValue() {
+            const value = document.getElementById('compression-ratio').value;
+            document.getElementById('compression-value').textContent = value + '%';
+        }
+
+        function getCustomParameters() {
+            return {
+                compression_ratio: parseInt(document.getElementById('compression-ratio').value) / 100,
+                min_sentences: parseInt(document.getElementById('min-sentences').value),
+                max_sentences: parseInt(document.getElementById('max-sentences').value),
+                include_analytics: true
+            };
+        }
+
+        function displayAnalytics(analytics, containerId) {
+            if (!analytics) return;
+            
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">Basic Metrics</h4>
+                        <ul class="space-y-2 text-gray-600">
+                            <li>Words: ${analytics.word_count}</li>
+                            <li>Sentences: ${analytics.sentence_count}</li>
+                            <li>Avg. Sentence Length: ${analytics.avg_sentence_length} words</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800 mb-2">Readability</h4>
+                        <ul class="space-y-2 text-gray-600">
+                            <li>Score: ${analytics.readability_score}</li>
+                            <li>Reading Time: ${analytics.estimated_read_time} min</li>
+                            ${analytics.compression_ratio ? `<li>Compression: ${analytics.compression_ratio * 100}%</li>` : ''}
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-800 mb-2">Key Terms</h4>
+                    <div class="flex flex-wrap gap-2">
+                        ${analytics.keywords.map(keyword => 
+                            `<span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">
+                                ${keyword} (${analytics.keyword_frequencies[keyword]})
+                            </span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayFAQs(faqs) {
+            const container = document.getElementById('faq-list');
+            container.innerHTML = faqs.map((faq, index) => `
+                <div class="bg-white rounded-lg shadow-sm p-4 transition-all hover:shadow-md">
+                    <h4 class="font-medium text-gray-800 mb-2">
+                        <span class="text-indigo-500 mr-2">${index + 1}.</span>
+                        ${faq.question}
+                    </h4>
+                    <p class="text-gray-600">${faq.answer}</p>
+                </div>
+            `).join('');
+        }
+
+        // Update event listeners
+        document.getElementById('settings-button').addEventListener('click', showSettingsModal);
+        document.getElementById('compression-ratio').addEventListener('input', updateCompressionValue);
+
+        document.getElementById('faq-button').addEventListener('click', async function() {
+            try {
+                if (!currentArticle) {
+                    showError('No article loaded to generate FAQs');
+                    return;
+                }
+
+                showLoading();
+                loadingText.textContent = 'Generating FAQs...';
+
+                const numQuestions = parseInt(document.getElementById('num-questions').value);
+                const response = await fetch('/api/generate-faqs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: currentArticle.content,
+                        num_questions: numQuestions
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate FAQs');
+                }
+                
+                const data = await response.json();
+                displayFAQs(data.faqs);
+                
+                // Show FAQ tab
+                document.getElementById('faq-tab').classList.remove('hidden');
+                document.getElementById('faq-tab').click();
+
+            } catch (err) {
+                showError(err.message || 'An error occurred while generating FAQs');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Modify summarize button to include custom parameters and analytics
+        summarizeButton.addEventListener('click', async function() {
+            if (!currentArticle) {
+                showError('No article loaded to summarize');
+                return;
+            }
+            
+            try {
+                const method = document.getElementById('summary-method').value;
+                const params = getCustomParameters();
+                
+                // If we already have the summary for this method, just show it
+                if (method === 'extractive' && extractiveSummary) {
+                    currentSummary = extractiveSummary;
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    showSummaryTab();
+                    return;
+                } else if (method === 'ai' && aiSummary) {
+                    currentSummary = aiSummary;
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    showSummaryTab();
+                    return;
+                }
+                
+                showLoading();
+                loadingText.textContent = 'Generating summary...';
+                
+                const response = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: currentArticle.content,
+                        method: method,
+                        params: params
+                    })
+                });
+                
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Failed to generate summary');
+                }
+                
+                const data = await response.json();
+                
+                if (data.summary) {
+                    currentSummary = data.summary;
+                    currentAnalytics = data.analytics;
+                    
+                    // Store the summary based on method
+                    if (method === 'extractive') {
+                        extractiveSummary = data.summary;
+                    } else {
+                        aiSummary = data.summary;
+                    }
+                    
+                    summary.innerHTML = formatTextWithParagraphs(currentSummary);
+                    
+                    // Update analytics
+                    if (currentAnalytics) {
+                        displayAnalytics(currentAnalytics, 'summary-analytics');
+                        // Show analytics tab
+                        document.getElementById('analytics-tab').classList.remove('hidden');
+                    }
+                    
+                    showSummaryTab();
+                    
+                    // Show compare button if we have both summaries
+                    if (extractiveSummary && aiSummary) {
+                        document.getElementById('compare-button').classList.remove('hidden');
+                    }
+                } else {
+                    throw new Error('No summary was generated');
+                }
+                
+            } catch (err) {
+                showError(err.message || 'An error occurred while generating the summary');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Add tab click handlers
+        document.getElementById('analytics-tab').addEventListener('click', function() {
+            // Hide all content
+            document.querySelectorAll('#content-container > div[id$="-content"]').forEach(el => el.classList.add('hidden'));
+            // Show analytics content
+            document.getElementById('analytics-content').classList.remove('hidden');
+            // Update tab styles
+            document.querySelectorAll('#content-container button[id$="-tab"]').forEach(el => {
+                el.classList.remove('text-indigo-500', 'border-b-2', 'border-indigo-500');
+                el.classList.add('text-gray-500');
+            });
+            this.classList.remove('text-gray-500');
+            this.classList.add('text-indigo-500', 'border-b-2', 'border-indigo-500');
+        });
+
+        document.getElementById('faq-tab').addEventListener('click', function() {
+            // Hide all content
+            document.querySelectorAll('#content-container > div[id$="-content"]').forEach(el => el.classList.add('hidden'));
+            // Show FAQ content
+            document.getElementById('faq-content').classList.remove('hidden');
+            // Update tab styles
+            document.querySelectorAll('#content-container button[id$="-tab"]').forEach(el => {
+                el.classList.remove('text-indigo-500', 'border-b-2', 'border-indigo-500');
+                el.classList.add('text-gray-500');
+            });
+            this.classList.remove('text-gray-500');
+            this.classList.add('text-indigo-500', 'border-b-2', 'border-indigo-500');
+        });
     </script>
 </body>
 </html> 
