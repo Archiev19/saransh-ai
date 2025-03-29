@@ -1,30 +1,46 @@
-# Saransh AI - Intelligent Article Reader & Summarizer
+# Saransh AI 📚
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Framework: Flask](https://img.shields.io/badge/framework-Flask-lightgrey.svg)](https://flask.palletsprojects.com/)
-
-Saransh AI is a powerful article reading and summarization platform that combines advanced AI with traditional summarization techniques to provide the best of both worlds. It offers dual summarization methods - AI-powered BART and extractive TextRank - allowing users to choose the approach that best suits their needs.
+An intelligent article reader and summarizer that helps you consume online content more efficiently.
 
 ## ✨ Features
 
 - **Dual Summarization Methods**
-  - 🤖 **AI-Powered BART**: Generate concise, human-like summaries using Facebook's BART model
-  - ⚡ **TextRank Algorithm**: Extract key sentences for 100% factual accuracy
-  - 🔄 **Side-by-Side Comparison**: Compare both methods to choose the best summary
+  - AI-powered BART summarization for concise, rephrased summaries
+  - Extractive TextRank summarization for faster, key-sentence extraction
+- **Side-by-Side Comparison**
+  - Compare both summarization methods
+  - Choose the best summary for your needs
+- **Clean Reading Experience**
+  - Distraction-free article view
+  - Proper paragraph formatting
+  - Easy navigation between article and summary
 
-- **Smart Article Reading**
-  - 🔓 Intelligent paywall bypass capabilities
-  - 📱 Clean reading mode for distraction-free experience
-  - 🌐 Universal compatibility with most news and article websites
+## 🚀 How It Works
 
-- **Modern Interface**
-  - 🎨 Beautiful, responsive design
-  - ⚡ Real-time summary generation
-  - 📋 One-click copy functionality
-  - 🔄 Compare summaries side by side
+### AI Summarization (BART)
+- Uses Facebook's BART model for human-like summaries
+- Understands context and generates concise summaries
+- Best for creative content and complex narratives
+- Takes slightly longer but provides more refined results
 
-## 🚀 Quick Start
+### Extractive Summarization (TextRank)
+- Uses TextRank algorithm to identify key sentences
+- Maintains original wording for 100% accuracy
+- Faster processing time
+- Perfect for news articles and factual content
+
+## 💻 Technical Stack
+
+- **Backend**: Python Flask
+- **AI Model**: facebook/bart-large-cnn
+- **Libraries**:
+  - `transformers` for AI summarization
+  - `networkx` for TextRank implementation
+  - `newspaper3k` for article extraction
+  - `nltk` for text processing
+  - `beautifulsoup4` for HTML parsing
+
+## 🛠️ Setup
 
 1. Clone the repository:
    ```bash
@@ -32,7 +48,7 @@ Saransh AI is a powerful article reading and summarization platform that combine
    cd saransh-ai
    ```
 
-2. Set up a virtual environment:
+2. Create a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -48,67 +64,33 @@ Saransh AI is a powerful article reading and summarization platform that combine
    python app.py
    ```
 
-5. Open your browser and visit:
+5. Open your browser and navigate to:
    ```
    http://localhost:5003
    ```
 
-## 🛠️ How It Works
-
-Saransh AI offers two powerful summarization methods:
-
-### 1. AI Summarization (BART)
-- Uses Facebook's BART (Bidirectional and Auto-Regressive Transformers) model
-- Generates concise, human-like summaries
-- Understands context and can rephrase content
-- Perfect for creative and narrative content
-
-### 2. Extractive Summarization (TextRank)
-- Based on Google's PageRank algorithm
-- Selects the most important sentences from the text
-- Ensures 100% factual accuracy
-- Ideal for news articles and technical content
-
-### Content Processing
-1. **Article Extraction**: Uses advanced tools to bypass paywalls and extract clean content
-2. **Text Processing**: Handles various formats and structures
-3. **Summary Generation**: Choose between AI or extractive methods
-4. **Comparison**: View both summaries side by side to pick the best one
-
 ## 🎯 Use Cases
 
-- **Research**: Quickly understand academic papers and research articles
-- **News Reading**: Stay updated with concise summaries of news articles
-- **Content Research**: Efficiently process multiple articles for content creation
-- **Academic Study**: Summarize study materials and research papers
-- **Business Intelligence**: Quick insights from industry articles and reports
-
-## 🔧 Technical Stack
-
-- **Backend**: Python, Flask
-- **Frontend**: HTML5, TailwindCSS, JavaScript
-- **NLP**: NLTK, Transformers (Hugging Face)
-- **AI Model**: facebook/bart-large-cnn
-- **Content Processing**: Newspaper3k, BeautifulSoup4
+- Research and academic reading
+- News article consumption
+- Content curation
+- Study material preparation
+- Quick information extraction
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 💡 Credits
+## 📝 License
 
-This project was inspired by SMRY.ai and builds upon their innovative approach to article summarization. We've enhanced the concept by adding AI-powered summarization and comparison features.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📄 License
+## 🙏 Credits
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- SMRY.ai for the original inspiration
-- Hugging Face for the BART model
-- The open-source NLP community
+- Inspired by SMRY.ai
+- Built with love by the open-source community
+- Special thanks to Hugging Face for the BART model
 
 ---
 
-Made with ❤️ by [Your Name] 
+Made with ❤️ for efficient reading 

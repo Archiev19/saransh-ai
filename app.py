@@ -1,23 +1,25 @@
 import os
-import logging
-import requests
-from bs4 import BeautifulSoup
-from flask import Flask, request, jsonify, render_template
-from whitenoise import WhiteNoise
-import nltk
-from nltk.tokenize import sent_tokenize
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 import re
-from urllib.parse import urlparse
-from newspaper import Article, ArticleException
-import time
-from dotenv import load_dotenv
+import logging
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
+from flask import Flask, request, jsonify, render_template
+from bs4 import BeautifulSoup
+import requests
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
 from transformers import pipeline
+from dotenv import load_dotenv
+import time
+import nltk
+from newspaper import Article, ArticleException
+from sklearn.metrics.pairwise import cosine_similarity
 import torch
+from urllib.parse import urlparse
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -26,20 +28,7 @@ load_dotenv()
 nltk.download('punkt')
 nltk.download('stopwords')
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('app.log', mode='w'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Initialize Flask app
 app = Flask(__name__)
-app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
 
 # Configure app
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300  # 5 minutes cache
@@ -62,6 +51,40 @@ class ContentExtractor:
             'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
             'Twitterbot/1.0'
         ]
+
+    def extract_content(self, url):
+        """Extract content from URL using newspaper3k with fallback to BeautifulSoup."""
+        if not is_valid_url(url):
+            raise ValueError('Invalid URL format')
+            
+        try:
+            # Try newspaper3k first
+            article = Article(url)
+            article.download()
+            article.parse()
+            
+            content = article.text
+            title = article.title
+            
+            if not content:
+                logger.warning("newspaper3k extraction failed, trying BeautifulSoup")
+                content = self._extract_with_beautifulsoup(url)
+                
+            if content:
+                return self.format_article_text(content), title
+                
+            raise ValueError('Could not extract content from URL')
+            
+        except ArticleException as e:
+            logger.warning(f"newspaper3k extraction failed: {str(e)}, trying BeautifulSoup")
+            content = self._extract_with_beautifulsoup(url)
+            if content:
+                return content, "Article"
+            raise ValueError('Could not extract content from URL')
+            
+        except Exception as e:
+            logger.error(f"Content extraction failed: {str(e)}")
+            raise ValueError('Could not extract content from URL')
 
     def _extract_with_beautifulsoup(self, url):
         """Extract content using BeautifulSoup (fallback method)."""
@@ -136,10 +159,249 @@ class ContentExtractor:
         
         return formatted_text
 
+class ExtractiveTextRankSummarizer:
+    def __init__(self):
+        self.stop_words = set(stopwords.words('english'))
+        logger.info("Initializing ExtractiveTextRankSummarizer")
+
+    def preprocess_text(self, text):
+        """Clean and tokenize the text."""
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Split into sentences
+        sentences = sent_tokenize(text)
+        
+        # Clean and tokenize each sentence
+        clean_sentences = []
+        sentence_words = []
+        
+        for sentence in sentences:
+            # Clean punctuation and convert to lowercase
+            clean_sentence = re.sub(r'[^\w\s]', '', sentence.lower())
+            words = word_tokenize(clean_sentence)
+            
+            # Remove stopwords and short words
+            words = [word for word in words if word not in self.stop_words and len(word) > 2]
+            
+            if words:  # Only keep sentences with meaningful words
+                clean_sentences.append(sentence)
+                sentence_words.append(words)
+        
+        return clean_sentences, sentence_words
+
+    def create_similarity_matrix(self, sentence_words):
+        """Create similarity matrix between sentences."""
+        similarity_matrix = np.zeros((len(sentence_words), len(sentence_words)))
+        
+        for i in range(len(sentence_words)):
+            for j in range(len(sentence_words)):
+                if i != j:
+                    similarity_matrix[i][j] = self.sentence_similarity(sentence_words[i], sentence_words[j])
+                    
+        return similarity_matrix
+
+    def sentence_similarity(self, words1, words2):
+        """Calculate similarity between two sentences using word overlap."""
+        words1_set = set(words1)
+        words2_set = set(words2)
+        
+        overlap = words1_set.intersection(words2_set)
+        union = words1_set.union(words2_set)
+        
+        return len(overlap) / (len(union) + 1e-9)  # Add small epsilon to avoid division by zero
+
+    def rank_sentences(self, similarity_matrix):
+        """Rank sentences using PageRank algorithm."""
+        nx_graph = nx.from_numpy_array(similarity_matrix)
+        scores = nx.pagerank(nx_graph)
+        return scores
+
+    def select_top_sentences(self, sentences, scores, num_sentences=None):
+        """Select top sentences based on their scores."""
+        if num_sentences is None:
+            # Dynamically determine number of sentences based on input length
+            num_sentences = max(3, len(sentences) // 5)
+        
+        ranked_sentences = [(score, i, sentence) for i, (sentence, score) in enumerate(zip(sentences, scores.values()))]
+        ranked_sentences.sort(reverse=True)
+        
+        # Select top sentences and sort them by original position
+        selected = sorted(ranked_sentences[:num_sentences], key=lambda x: x[1])
+        return [sentence for _, _, sentence in selected]
+
+    def process_article(self, text):
+        """Generate extractive summary using TextRank algorithm."""
+        try:
+            if not text or len(text.strip()) < 100:
+                logger.warning("Text too short for summarization")
+                return text
+
+            logger.info(f"Starting extractive summarization for text of length: {len(text)}")
+            
+            # Preprocess text
+            sentences, sentence_words = self.preprocess_text(text)
+            if len(sentences) < 3:
+                logger.warning("Too few sentences for meaningful summarization")
+                return text
+            
+            # Create similarity matrix
+            similarity_matrix = self.create_similarity_matrix(sentence_words)
+            
+            # Rank sentences
+            sentence_scores = self.rank_sentences(similarity_matrix)
+            
+            # Select top sentences
+            summary_sentences = self.select_top_sentences(sentences, sentence_scores)
+            
+            # Join sentences into paragraphs
+            summary = '\n\n'.join([' '.join(summary_sentences[i:i+3]) 
+                                 for i in range(0, len(summary_sentences), 3)])
+            
+            logger.info(f"Generated extractive summary of length: {len(summary)}")
+            return summary
+            
+        except Exception as e:
+            logger.error(f"Error in extractive summarization: {str(e)}")
+            return None
+
 # Initialize components
 content_extractor = ContentExtractor()
 summarizer = ExtractiveTextRankSummarizer()
-ai_summarizer = HuggingFaceAISummarizer()
+
+class HuggingFaceAISummarizer:
+    def __init__(self):
+        self.model_name = "facebook/bart-large-cnn"
+        logger.info(f"Initializing HuggingFace summarizer with model: {self.model_name}")
+        try:
+            logger.info("Loading summarization pipeline...")
+            self.summarizer = pipeline("summarization", model=self.model_name)
+            logger.info("HuggingFace summarizer initialized successfully")
+        except Exception as e:
+            logger.error(f"Error initializing HuggingFace summarizer: {str(e)}")
+            raise
+
+    def post_process_summary(self, text):
+        """Clean and format the generated summary."""
+        # Remove extra whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # Ensure proper sentence spacing
+        text = re.sub(r'(?<=[.!?])\s*(?=[A-Z])', '\n\n', text)
+        
+        # Fix common issues
+        text = re.sub(r'\s+([.,!?])', r'\1', text)  # Remove space before punctuation
+        text = re.sub(r'([.,!?])(?=[^\s])', r'\1 ', text)  # Add space after punctuation
+        
+        # Capitalize first letter of sentences
+        sentences = text.split('\n\n')
+        sentences = [s[0].upper() + s[1:] if s else s for s in sentences]
+        text = '\n\n'.join(sentences)
+        
+        return text
+
+    def chunk_text(self, text, max_chunk_size=512):
+        """Split text into chunks that fit within model's max token limit."""
+        logger.info(f"Chunking text of length {len(text)} with max_chunk_size {max_chunk_size}")
+        chunks = []
+        sentences = sent_tokenize(text)
+        current_chunk = []
+        current_length = 0
+        
+        for sentence in sentences:
+            sentence_length = len(sentence.split())
+            
+            if sentence_length > max_chunk_size:
+                if current_chunk:
+                    chunk_text = " ".join(current_chunk)
+                    chunks.append(chunk_text)
+                    current_chunk = []
+                    current_length = 0
+                
+                words = sentence.split()
+                current_part = []
+                
+                for word in words:
+                    current_part.append(word)
+                    if len(current_part) >= max_chunk_size:
+                        chunk_text = " ".join(current_part)
+                        chunks.append(chunk_text)
+                        current_part = []
+                
+                if current_part:
+                    current_chunk = current_part
+                    current_length = len(current_part)
+            
+            elif current_length + sentence_length <= max_chunk_size:
+                current_chunk.append(sentence)
+                current_length += sentence_length
+            else:
+                chunk_text = " ".join(current_chunk)
+                chunks.append(chunk_text)
+                current_chunk = [sentence]
+                current_length = sentence_length
+        
+        if current_chunk:
+            chunk_text = " ".join(current_chunk)
+            chunks.append(chunk_text)
+        
+        return chunks
+
+    def summarize(self, text, max_length=150, min_length=50):
+        """Generate AI-powered summary using BART model."""
+        try:
+            if not text or len(text.strip()) < 100:
+                logger.warning("Text too short for AI summarization")
+                return text
+
+            logger.info(f"Starting AI summarization for text of length: {len(text)}")
+            
+            if not hasattr(self, 'summarizer'):
+                logger.error("Summarizer not initialized")
+                return None
+                
+            chunks = self.chunk_text(text)
+            logger.info(f"Split text into {len(chunks)} chunks")
+            summaries = []
+            
+            for i, chunk in enumerate(chunks):
+                try:
+                    if len(chunk.split()) < 10:
+                        logger.warning(f"Chunk {i+1} too short, skipping")
+                        continue
+                        
+                    summary = self.summarizer(chunk, 
+                                           max_length=max_length,
+                                           min_length=min_length,
+                                           do_sample=False)
+                                           
+                    if not summary or not isinstance(summary, list) or len(summary) == 0:
+                        logger.error(f"Invalid summary format for chunk {i+1}")
+                        continue
+                        
+                    summary_text = summary[0].get('summary_text')
+                    if not summary_text:
+                        logger.error(f"No summary text generated for chunk {i+1}")
+                        continue
+                        
+                    summaries.append(summary_text)
+                    
+                except Exception as e:
+                    logger.error(f"Error summarizing chunk {i+1}: {str(e)}")
+                    continue
+            
+            if not summaries:
+                logger.error("No summaries were generated for any chunks")
+                return None
+                
+            final_summary = " ".join(summaries)
+            final_summary = self.post_process_summary(final_summary)
+            
+            return final_summary
+            
+        except Exception as e:
+            logger.error(f"Error in AI summarization: {str(e)}")
+            return None
 
 @app.route('/')
 def home():
@@ -215,7 +477,7 @@ def generate_summary():
             # Generate summary based on method
             logger.info(f"Starting {method} summarization process")
             if method.lower() == 'ai':
-                summary = ai_summarizer.summarize(content)
+                summary = HuggingFaceAISummarizer().summarize(content)
                 if not summary:
                     logger.warning("AI summarization failed, falling back to extractive")
                     summary = summarizer.process_article(content)
