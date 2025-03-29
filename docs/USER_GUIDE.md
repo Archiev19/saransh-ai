@@ -15,13 +15,14 @@ Welcome to Saransh AI! This guide will help you make the most of our intelligent
 
 ### What is Saransh AI?
 Saransh AI is your intelligent reading companion that helps you:
-- Read articles from any website (even paywalled ones!)
-- Get smart summaries that capture the main points
+- Read articles from any website
+- Get smart summaries using two different methods
+- Compare summaries side by side
 - Enjoy a clean, distraction-free reading experience
 
 ### Accessing Saransh AI
 1. Open your web browser
-2. Go to `http://localhost:5003` (or your configured address)
+2. Go to `http://localhost:5003`
 3. You'll see a clean interface with a URL input box
 
 ## Basic Features
@@ -34,9 +35,12 @@ Saransh AI is your intelligent reading companion that helps you:
 
 ### 2. Getting Summaries
 1. While reading an article, click "**Generate Summary**"
-2. The summary will appear in a new tab
-3. Switch between article and summary using the tabs
-4. Copy the summary with one click using the copy button
+2. Choose your preferred summarization method:
+   - AI (BART) - More concise, may take longer
+   - Extractive (TextRank) - Faster, 100% accurate
+3. The summary will appear in a new tab
+4. Switch between article and summary using the tabs
+5. Copy the summary with one click using the copy button
 
 ### 3. Clean Reading Mode
 - Clear, properly spaced paragraphs
@@ -56,6 +60,7 @@ Saransh AI is your intelligent reading companion that helps you:
   - Natural language generation
   - Context understanding
   - Creative rephrasing
+- **Processing Time**: May take a few seconds depending on article length
 
 ### 2. Extractive Summarization (TextRank)
 - **What**: Uses TextRank algorithm to extract key sentences
@@ -67,6 +72,7 @@ Saransh AI is your intelligent reading companion that helps you:
   - Original sentence preservation
   - Fast processing
   - Perfect factual accuracy
+- **Processing Time**: Almost instant
 
 ### Comparison Feature
 - Click "Compare Methods" to see both summaries side by side
@@ -75,25 +81,17 @@ Saransh AI is your intelligent reading companion that helps you:
 
 ## Advanced Features
 
-### 1. Paywall Bypass
-Saransh AI can access content from paywalled sites using:
-- Smart user agent switching
-- Archive.is integration
-- Google cache access
-- Multiple fallback methods
-
-### 2. Smart Summarization
-Our TextRank-based summarization:
-- Identifies key sentences automatically
-- Maintains original context and flow
-- Preserves factual accuracy
-- Creates well-structured summaries
-
-### 3. Content Processing
+### 1. Smart Content Processing
 - Automatic paragraph detection
 - Smart sentence grouping
 - Proper formatting preservation
 - Clean text extraction
+
+### 2. Summary Management
+- One-click copy functionality
+- Side-by-side comparison
+- Easy switching between methods
+- Persistent summaries during session
 
 ## Tips & Tricks
 
@@ -158,7 +156,9 @@ A: Yes! Use the "Compare Methods" feature to see both summaries side by side.
 ### Technical Questions
 
 **Q: How does the summarization work?**
-A: We use the TextRank algorithm to identify and extract key sentences while maintaining context.
+A: We use two methods:
+- AI (BART): Uses Facebook's BART model to understand and rephrase content
+- Extractive (TextRank): Uses the TextRank algorithm to identify and extract key sentences
 
 **Q: Is my data private?**
 A: Yes, all processing is done locally on your machine. We don't store any articles or summaries.
@@ -167,52 +167,7 @@ A: Yes, all processing is done locally on your machine. We don't store any artic
 A: You need internet to fetch articles, but the summarization works locally.
 
 **Q: Does it work with all websites?**
-A: Yes, Saransh AI works with most websites, including those with paywalls.
-
-**Q: Is the AI summary always different from the extractive one?**
-A: Yes, while they may cover similar points, the AI summary rephrases content while extractive uses original sentences.
-
-### Feature Questions
-
-**Q: Can I save summaries?**
-A: Yes, use the copy button to save summaries to your clipboard.
-
-**Q: Does it work with PDFs?**
-A: Currently, we support web articles only. PDF support is planned for future releases.
-
-**Q: Which method is more accurate?**
-A: Extractive is 100% factually accurate as it uses original sentences. AI provides more concise, rephrased summaries while maintaining accuracy.
-
-## Need More Help?
-
-- Check our [GitHub repository](https://github.com/yourusername/saransh-ai)
-- Open an issue for bugs or features
-- Contact us through GitHub discussions
-
----
-
-Remember, Saransh AI is continuously improving. Your feedback helps us make it better! 
-A: Use AI (BART) for creative content and when you want concise, rephrased summaries. Use Extractive (TextRank) for news and when factual accuracy is crucial.
-
-**Q: How long does summarization take?**
-A: Extractive summarization is almost instant. AI summarization may take a few seconds depending on article length.
-
-**Q: Can I use both methods?**
-A: Yes! Use the "Compare Methods" feature to see both summaries side by side.
-
-### Technical Questions
-
-**Q: How does the summarization work?**
-A: We use the TextRank algorithm to identify and extract key sentences while maintaining context.
-
-**Q: Is my data private?**
-A: Yes, all processing is done locally on your machine. We don't store any articles or summaries.
-
-**Q: Can I use it offline?**
-A: You need internet to fetch articles, but the summarization works locally.
-
-**Q: Does it work with all websites?**
-A: Yes, Saransh AI works with most websites, including those with paywalls.
+A: Yes, Saransh AI works with most websites.
 
 **Q: Is the AI summary always different from the extractive one?**
 A: Yes, while they may cover similar points, the AI summary rephrases content while extractive uses original sentences.

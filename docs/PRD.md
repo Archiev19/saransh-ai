@@ -2,16 +2,16 @@
 
 ## Executive Summary
 
-Saransh AI is an intelligent article reading and summarization platform that transforms how users consume online content. By combining advanced natural language processing with a seamless user experience, it makes online reading more efficient and accessible.
+Saransh AI is an intelligent article reading and summarization platform that transforms how users consume online content. By combining advanced AI-powered summarization with traditional extractive methods, it provides users with flexible options for efficient content consumption.
 
 ## Problem Statement
 
 Modern internet users face several challenges when consuming online content:
 1. Information overload from lengthy articles
-2. Paywalls blocking access to important content
-3. Distracting website elements affecting reading experience
-4. Time constraints in processing multiple articles
-5. Need for quick understanding of key points
+2. Time constraints in processing multiple articles
+3. Need for quick understanding of key points
+4. Desire for both accurate and concise summaries
+5. Distracting website elements affecting reading experience
 
 ## Target Users
 
@@ -60,204 +60,211 @@ Modern internet users face several challenges when consuming online content:
    - Advertisement elimination
    - Proper paragraph formatting
 
-2. **Summarization Engine**
-   - TextRank algorithm implementation
+2. **Dual Summarization Engine**
+   - AI-powered BART summarization
+   - TextRank-based extractive summarization
    - Context preservation
    - Key point identification
    - Proper sentence ordering
 
 3. **User Interface**
-   - URL input system
-   - Article/summary toggle
-   - Copy functionality
-   - Error handling
+   - Clean, distraction-free reading mode
+   - Easy navigation between article and summary
+   - Side-by-side comparison view
+   - One-click copy functionality
+   - Responsive design
 
-### Should-Have Features (P1)
-1. **Enhanced Reading**
-   - Font customization
-   - Text size adjustment
-   - Line spacing options
-   - Reading progress indicator
+4. **Performance**
+   - Fast article loading
+   - Quick extractive summarization
+   - Efficient AI processing
+   - Smooth UI transitions
 
-2. **Content Management**
-   - Reading history
-   - Bookmark system
-   - Share functionality
+### Nice-to-Have Features (P1)
+1. **Advanced Features**
+   - PDF support
+   - Browser extension
+   - Offline mode
+   - Custom summary length
+
+2. **User Experience**
+   - Dark mode
+   - Custom themes
+   - Keyboard shortcuts
+   - Reading progress tracking
+
+3. **Integration**
+   - API access
+   - Social sharing
    - Export options
+   - Bookmarking system
 
-### Nice-to-Have Features (P2)
-1. **Advanced Tools**
-   - Keyword highlighting
-   - Note-taking capability
-   - Citation generation
-   - Related article suggestions
-
-## Technical Architecture
-
-### Frontend
-- **Technology**: HTML5, TailwindCSS, JavaScript
-- **Components**:
-  - URL input interface
-  - Article display
-  - Summary display
-  - Navigation system
-  - Progress indicators
+## Technical Requirements
 
 ### Backend
-- **Core**: Python Flask server
-- **Processing**:
-  - Content extraction module
-  - TextRank implementation
-  - Caching system
-  - Error handling
+- Python 3.8+
+- Flask web framework
+- Hugging Face Transformers
+- NLTK for text processing
+- NetworkX for TextRank
+- BeautifulSoup4 for parsing
 
-### Infrastructure
-- **Deployment**: Docker containerization
-- **Scaling**: Horizontal scaling capability
-- **Monitoring**: System health tracking
-- **Security**: HTTPS enforcement
+### Frontend
+- HTML5
+- TailwindCSS
+- JavaScript (ES6+)
+- Responsive design
+- Progressive enhancement
 
-## Success Metrics
+### AI/ML
+- BART model for AI summarization
+- TextRank algorithm for extractive summarization
+- NLTK for text processing
+- Custom text chunking
+- Efficient token management
 
-### User Metrics
-1. **Engagement**
-   - Daily active users
-   - Articles processed per user
-   - Return rate
-   - Session duration
+## Performance Metrics
 
-2. **Performance**
-   - Summary generation time
-   - Article extraction success rate
-   - Error frequency
-   - System uptime
+### Speed
+- Article loading: < 3 seconds
+- Extractive summary: < 1 second
+- AI summary: < 5 seconds for 1000 words
+- UI response: < 100ms
 
-### Technical Metrics
-1. **Reliability**
-   - System availability
-   - Response times
-   - Error rates
-   - Recovery time
+### Accuracy
+- Content extraction: > 95%
+- Summary relevance: > 90%
+- Factual accuracy: 100% (extractive)
+- Context preservation: > 85%
 
-2. **Quality**
-   - Summary accuracy
-   - Content extraction precision
-   - User satisfaction score
-   - Feature adoption rate
+### Reliability
+- System uptime: > 99.9%
+- Error rate: < 1%
+- Recovery time: < 30 seconds
+- Data consistency: 100%
 
-## Timeline and Milestones
+## Security Requirements
 
-### Phase 1: Foundation (Months 1-2)
-- Core architecture setup
-- Basic UI implementation
-- Content extraction system
-- Initial summarization engine
+### Data Protection
+- Local processing only
+- No data storage
+- Secure connections
+- Input validation
 
-### Phase 2: Enhancement (Months 3-4)
-- UI/UX improvements
-- Performance optimization
-- Error handling enhancement
-- User feedback integration
+### Privacy
+- No user tracking
+- No data collection
+- No third-party sharing
+- Transparent processing
 
-### Phase 3: Expansion (Months 5-6)
-- Additional features
-- System scaling
-- Documentation
-- Community building
+## Future Enhancements
 
-## Risk Analysis
+### Phase 1 (3-6 months)
+1. PDF support
+2. Browser extension
+3. Offline mode
+4. Custom themes
 
-### Technical Risks
-1. **Content Extraction**
-   - Website structure changes
-   - JavaScript-heavy sites
-   - Dynamic content
-   - Mitigation: Multiple fallback methods
+### Phase 2 (6-12 months)
+1. API development
+2. Mobile app
+3. Advanced AI models
+4. Multi-language support
 
-2. **Performance**
-   - High concurrent users
-   - Large articles
-   - Network issues
-   - Mitigation: Caching and optimization
-
-### Business Risks
-1. **Competition**
-   - Similar products
-   - API limitations
-   - Market changes
-   - Mitigation: Unique feature focus
-
-2. **Legal**
-   - Content rights
-   - Privacy concerns
-   - Terms of service
-   - Mitigation: Legal compliance review
-
-## Future Roadmap
-
-### Version 2.0
-- Mobile applications
-- Browser extensions
-- Offline functionality
-- Team collaboration features
-
-### Version 3.0
-- Enterprise integration
-- API marketplace
-- Custom deployment options
-- Advanced analytics
-
-## Competitive Analysis
-
-### Direct Competitors
-1. **SMRY.AI**
-   - Inspiration for UI/UX
-   - Different technical approach
-   - Our advantage: No API dependency
-
-2. **Traditional Readers**
-   - Basic functionality
-   - Limited features
-   - Our advantage: Advanced processing
-
-### Indirect Competitors
-1. **Browser Reading Modes**
-   - Limited functionality
-   - No summarization
-   - Our advantage: Comprehensive solution
-
-2. **Content Aggregators**
-   - Different focus
-   - No processing
-   - Our advantage: Specialized features
+### Phase 3 (12+ months)
+1. Enterprise features
+2. Team collaboration
+3. Advanced analytics
+4. Custom integrations
 
 ## Success Criteria
 
-### Launch Metrics
-- 1000+ active users
-- 90% extraction success
-- 95% summary accuracy
-- <2s processing time
+### User Engagement
+- Average session duration: > 5 minutes
+- Return rate: > 60%
+- Feature usage: > 80%
+- User satisfaction: > 90%
 
-### 6-Month Goals
-- 10,000+ active users
-- 95% extraction success
-- 98% summary accuracy
-- <1s processing time
+### Technical Performance
+- System stability: > 99.9%
+- Response time: < 3 seconds
+- Error rate: < 1%
+- Resource usage: < 70%
 
-## Appendix
+### Business Metrics
+- User growth: > 50% monthly
+- Feature adoption: > 80%
+- User retention: > 70%
+- Community growth: > 100%
 
-### User Research
-- Survey results
-- User interviews
-- Usage patterns
-- Feature requests
+## Timeline
 
-### Technical Documentation
-- Architecture diagrams
-- API specifications
-- Data flow models
-- Security protocols
+### Month 1-2
+- Core development
+- Basic features
+- Initial testing
+
+### Month 3-4
+- Feature refinement
+- Performance optimization
+- User testing
+
+### Month 5-6
+- Bug fixes
+- Documentation
+- Launch preparation
+
+## Risks and Mitigation
+
+### Technical Risks
+1. **AI Model Performance**
+   - Mitigation: Regular model updates
+   - Fallback: Extractive summarization
+
+2. **System Scalability**
+   - Mitigation: Efficient resource usage
+   - Fallback: Local processing
+
+3. **Browser Compatibility**
+   - Mitigation: Progressive enhancement
+   - Fallback: Basic functionality
+
+### User Risks
+1. **Learning Curve**
+   - Mitigation: Intuitive interface
+   - Fallback: User guide
+
+2. **Feature Overload**
+   - Mitigation: Progressive disclosure
+   - Fallback: Core features only
+
+3. **Performance Expectations**
+   - Mitigation: Clear feedback
+   - Fallback: Fast extractive mode
+
+## Success Metrics
+
+### User Success
+- Time saved per article
+- Summary quality
+- Feature usage
+- User satisfaction
+
+### Technical Success
+- System stability
+- Response time
+- Error rate
+- Resource usage
+
+### Business Success
+- User growth
+- Feature adoption
+- User retention
+- Community growth
+
+## Conclusion
+
+Saransh AI aims to revolutionize how users consume online content by providing intelligent, efficient, and accurate summarization tools. Through continuous improvement and user feedback, we will maintain our position as a leading article summarization platform.
 
 ---
 
