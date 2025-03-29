@@ -3,6 +3,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify, render_template
+from whitenoise import WhiteNoise
 import nltk
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
@@ -28,9 +29,22 @@ nltk.download('stopwords')
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log', mode='w'),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
+
+# Initialize Flask app
+app = Flask(__name__)
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+
+# Configure app
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300  # 5 minutes cache
+app.config['TEMPLATES_AUTO_RELOAD'] = False
+app.jinja_env.cache = {}
 
 def is_valid_url(url):
     try:
@@ -122,7 +136,7 @@ class ContentExtractor:
         
         return formatted_text
 
-app = Flask(__name__)
+# Initialize components
 content_extractor = ContentExtractor()
 summarizer = ExtractiveTextRankSummarizer()
 ai_summarizer = HuggingFaceAISummarizer()

@@ -192,3 +192,48 @@ A: Extractive is 100% factually accurate as it uses original sentences. AI provi
 ---
 
 Remember, Saransh AI is continuously improving. Your feedback helps us make it better! 
+A: Use AI (BART) for creative content and when you want concise, rephrased summaries. Use Extractive (TextRank) for news and when factual accuracy is crucial.
+
+**Q: How long does summarization take?**
+A: Extractive summarization is almost instant. AI summarization may take a few seconds depending on article length.
+
+**Q: Can I use both methods?**
+A: Yes! Use the "Compare Methods" feature to see both summaries side by side.
+
+### Technical Questions
+
+**Q: How does the summarization work?**
+A: We use the TextRank algorithm to identify and extract key sentences while maintaining context.
+
+**Q: Is my data private?**
+A: Yes, all processing is done locally on your machine. We don't store any articles or summaries.
+
+**Q: Can I use it offline?**
+A: You need internet to fetch articles, but the summarization works locally.
+
+**Q: Does it work with all websites?**
+A: Yes, Saransh AI works with most websites, including those with paywalls.
+
+**Q: Is the AI summary always different from the extractive one?**
+A: Yes, while they may cover similar points, the AI summary rephrases content while extractive uses original sentences.
+
+### Feature Questions
+
+**Q: Can I save summaries?**
+A: Yes, use the copy button to save summaries to your clipboard.
+
+**Q: Does it work with PDFs?**
+A: Currently, we support web articles only. PDF support is planned for future releases.
+
+**Q: Which method is more accurate?**
+A: Extractive is 100% factually accurate as it uses original sentences. AI provides more concise, rephrased summaries while maintaining accuracy.
+
+## Need More Help?
+
+- Check our [GitHub repository](https://github.com/yourusername/saransh-ai)
+- Open an issue for bugs or features
+- Contact us through GitHub discussions
+
+---
+
+Remember, Saransh AI is continuously improving. Your feedback helps us make it better! 
