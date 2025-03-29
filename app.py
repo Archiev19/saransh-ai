@@ -462,17 +462,23 @@ class ExtractiveTextRankSummarizer:
 
 class HuggingFaceAISummarizer:
     def __init__(self):
-        self.model_name = "facebook/bart-large-cnn"
+        self.model_name = "facebook/bart-base"  # Using smaller base model instead of large
         logger.info(f"Initializing HuggingFace summarizer with model: {self.model_name}")
         try:
             logger.info("Loading summarization pipeline...")
-            self.summarizer = pipeline("summarization", model=self.model_name)
+            self.summarizer = pipeline(
+                "summarization", 
+                model=self.model_name,
+                device=-1,  # Use CPU instead of GPU
+                torch_dtype=torch.float32,  # Use float32 instead of float16
+                low_cpu_mem_usage=True  # Enable low memory mode
+            )
             logger.info("HuggingFace summarizer initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing HuggingFace summarizer: {str(e)}")
             raise
 
-    def chunk_text(self, text, max_chunk_size=512):
+    def chunk_text(self, text, max_chunk_size=256):  # Reduced chunk size
         """Split text into chunks that fit within model's max token limit."""
         logger.info(f"Chunking text of length {len(text)} with max_chunk_size {max_chunk_size}")
         chunks = []
@@ -528,7 +534,7 @@ class HuggingFaceAISummarizer:
         logger.info(f"Created {len(chunks)} chunks")
         return chunks
 
-    def summarize(self, text, max_length=150, min_length=50):
+    def summarize(self, text, max_length=100, min_length=30):  # Reduced summary lengths
         """Generate AI-powered summary using BART model."""
         try:
             if not text or len(text.strip()) < 100:
