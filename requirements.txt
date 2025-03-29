@@ -1,7 +1,6 @@
+streamlit>=1.32.0
 flask==2.0.1
 werkzeug==2.0.1
-lxml==4.6.5
-lxml_html_clean>=1.0.0
 newspaper3k==0.2.8
 nltk==3.6.3
 beautifulsoup4==4.9.3
@@ -15,3 +14,4 @@ sentencepiece>=0.1.96
 accelerate>=0.5.1
 scikit-learn>=1.0.2
 gunicorn==20.1.0
+lxml[html_clean]>=4.9.2
