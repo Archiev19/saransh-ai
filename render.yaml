@@ -2,9 +2,8 @@ services:
   - type: web
     name: saransh-ai
     env: python
-    plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt && python -m nltk.downloader punkt stopwords
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 --max-requests 100 --max-requests-jitter 10
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.12
@@ -14,9 +13,13 @@ services:
         value: 10000
       - key: TRANSFORMERS_CACHE
         value: /tmp/transformers_cache
-      - key: PYTORCH_CUDA_ALLOC_CONF
-        value: max_split_size_mb:512
-      - key: OMP_NUM_THREADS
-        value: 2
-      - key: MKL_NUM_THREADS
-        value: 2 
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONGC
+        value: 1
+      - key: MPLCONFIGDIR
+        value: /tmp/matplotlib
+      - key: TORCH_HOME
+        value: /tmp/torch
+      - key: HF_HOME
+        value: /tmp/huggingface 

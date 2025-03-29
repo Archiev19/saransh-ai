@@ -229,7 +229,7 @@ class ContentExtractor:
             
             # Return None if no content was found
             if not content:
-                return None
+            return None
             
             # Process and return the content
             return self.format_article_text(content)
@@ -471,7 +471,8 @@ class HuggingFaceAISummarizer:
                 model=self.model_name,
                 device=-1,  # Use CPU instead of GPU
                 torch_dtype=torch.float32,  # Use float32 instead of float16
-                low_cpu_mem_usage=True  # Enable low memory mode
+                low_cpu_mem_usage=True,  # Enable low memory mode
+                max_memory={0: "512MiB"}  # Limit memory usage
             )
             logger.info("HuggingFace summarizer initialized successfully")
         except Exception as e:
@@ -489,13 +490,11 @@ class HuggingFaceAISummarizer:
         for sentence in sentences:
             # Rough estimate of token length (words + some padding)
             sentence_length = len(sentence.split())
-            logger.info(f"Processing sentence of length {sentence_length} tokens")
             
             if sentence_length > max_chunk_size:
                 # If we have a current chunk, add it to chunks
                 if current_chunk:
                     chunk_text = " ".join(current_chunk)
-                    logger.info(f"Adding full chunk of length {len(chunk_text)}")
                     chunks.append(chunk_text)
                     current_chunk = []
                     current_length = 0
@@ -508,7 +507,6 @@ class HuggingFaceAISummarizer:
                     current_part.append(word)
                     if len(current_part) >= max_chunk_size:
                         chunk_text = " ".join(current_part)
-                        logger.info(f"Adding split chunk of length {len(chunk_text)}")
                         chunks.append(chunk_text)
                         current_part = []
                 
@@ -521,20 +519,17 @@ class HuggingFaceAISummarizer:
                 current_length += sentence_length
             else:
                 chunk_text = " ".join(current_chunk)
-                logger.info(f"Adding chunk of length {len(chunk_text)}")
                 chunks.append(chunk_text)
                 current_chunk = [sentence]
                 current_length = sentence_length
         
         if current_chunk:
             chunk_text = " ".join(current_chunk)
-            logger.info(f"Adding final chunk of length {len(chunk_text)}")
             chunks.append(chunk_text)
         
-        logger.info(f"Created {len(chunks)} chunks")
         return chunks
 
-    def summarize(self, text, max_length=100, min_length=30):  # Reduced summary lengths
+    def summarize(self, text, max_length=100, min_length=30):  # Reduced lengths
         """Generate AI-powered summary using BART model."""
         try:
             if not text or len(text.strip()) < 100:
@@ -555,8 +550,6 @@ class HuggingFaceAISummarizer:
             
             for i, chunk in enumerate(chunks):
                 try:
-                    logger.info(f"Processing chunk {i+1}/{len(chunks)} of length {len(chunk)}")
-                    
                     # Add safety check for chunk length
                     if len(chunk.split()) < 10:
                         logger.warning(f"Chunk {i+1} too short, skipping")
@@ -565,7 +558,9 @@ class HuggingFaceAISummarizer:
                     summary = self.summarizer(chunk, 
                                            max_length=max_length,
                                            min_length=min_length,
-                                           do_sample=False)
+                                           do_sample=False,
+                                           num_beams=2,  # Reduced beam size
+                                           early_stopping=True)
                                            
                     if not summary or not isinstance(summary, list) or len(summary) == 0:
                         logger.error(f"Invalid summary format for chunk {i+1}")
@@ -576,11 +571,14 @@ class HuggingFaceAISummarizer:
                         logger.error(f"No summary text generated for chunk {i+1}")
                         continue
                         
-                    logger.info(f"Generated summary for chunk {i+1}: {len(summary_text)} chars")
                     summaries.append(summary_text)
+                    
+                    # Clear CUDA cache if using GPU
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        
                 except Exception as e:
                     logger.error(f"Error summarizing chunk {i+1}: {str(e)}")
-                    logger.error(f"Chunk content: {chunk[:100]}...")
                     continue
             
             if not summaries:
@@ -589,17 +587,14 @@ class HuggingFaceAISummarizer:
                 
             # Combine summaries
             final_summary = " ".join(summaries)
-            logger.info(f"Combined {len(summaries)} summaries into final summary of length: {len(final_summary)}")
             
             # Post-process the summary
             final_summary = self.post_process_summary(final_summary)
-            logger.info("Post-processed summary successfully")
             
             return final_summary
             
         except Exception as e:
             logger.error(f"Error in AI summarization: {str(e)}")
-            logger.error("Full traceback:", exc_info=True)
             return None
 
     def post_process_summary(self, summary):
